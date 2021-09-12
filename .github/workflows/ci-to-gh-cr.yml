@@ -1,64 +1,64 @@
-# name: CI to Github Change Request
+name: CI to Github Change Request
 
-# on:
-#   push:
+on:
+  push:
+    branches: [ master ]
+    tags: [ 'v*.*.*' ]
+#   pull_request:
 #     branches: [ master ]
-#     tags: [ 'v*.*.*' ]
-# #   pull_request:
-# #     branches: [ master ]
 
-# env:
-#   # Use docker.io for Docker Hub if empty
-#   REGISTRY: ghcr.io
-#   # github.repository as <account>/<repo>
-#   IMAGE_NAME: ${{ github.repository }}
+env:
+  # Use docker.io for Docker Hub if empty
+  REGISTRY: ghcr.io
+  # github.repository as <account>/<repo>
+  IMAGE_NAME: ${{ github.repository }}
 
 
-# jobs:
-#   build:
+jobs:
+  build:
 
-#     runs-on: ubuntu-latest
-#     # permissions:
-#     #   contents: read
-#     #   packages: write
+    runs-on: ubuntu-latest
+    # permissions:
+    #   contents: read
+    #   packages: write
 
-#     steps:
-#       - name: Checkout repository
-#         uses: actions/checkout@v2
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
 
-#       - name: Cache Docker layers
-#         uses: actions/cache@v2
-#         with:
-#           path: /tmp/.buildx-cache
-#           key: ${{ runner.os }}-buildx-${{ github.sha }}
-#           restore-keys: |
-#             ${{ runner.os }}-buildx-
+      - name: Cache Docker layers
+        uses: actions/cache@v2
+        with:
+          path: /tmp/.buildx-cache
+          key: ${{ runner.os }}-buildx-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-buildx-
             
-#       # Login against a Docker registry except on PR
-#       # https://github.com/docker/login-action
-#       - name: Log into registry ${{ env.REGISTRY }}
-#         if: github.event_name != 'pull_request'
-#         uses: docker/login-action@v1
-#         with:
-#           registry: ${{ env.REGISTRY }}
-#           username: ${{ github.repository_owner }}
-#           password: ${{ secrets.GITHUB_TOKEN }}
+      # Login against a Docker registry except on PR
+      # https://github.com/docker/login-action
+      - name: Log into registry ${{ env.REGISTRY }}
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v1
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
-#       - name: Set up Docker Buildx
-#         id: buildx
-#         uses: docker/setup-buildx-action@v1
+      - name: Set up Docker Buildx
+        id: buildx
+        uses: docker/setup-buildx-action@v1
 
-#       - name: Build and push
-#         id: docker_build
-#         uses: docker/build-push-action@v2
-#         with:
-#           context: ./
-#           file: ./Dockerfile
-#           builder: ${{ steps.buildx.outputs.name }}
-#           push: true
-#           tags: ${{ env.REGISTRY }}/${{ github.repository_owner }}/simplewhale:latest
-#           cache-from: type=local,src=/tmp/.buildx-cache
-#           cache-to: type=local,dest=/tmp/.buildx-cache
+      - name: Build and push
+        id: docker_build
+        uses: docker/build-push-action@v2
+        with:
+          context: ./
+          file: ./Dockerfile
+          builder: ${{ steps.buildx.outputs.name }}
+          push: true
+          tags: ${{ env.REGISTRY }}/${{ github.repository_owner }}/simplewhale:latest
+          cache-from: type=local,src=/tmp/.buildx-cache
+          cache-to: type=local,dest=/tmp/.buildx-cache
 
-#       - name: Image digest
-#         run: echo ${{ steps.docker_build.outputs.digest }}
+      - name: Image digest
+        run: echo ${{ steps.docker_build.outputs.digest }}
